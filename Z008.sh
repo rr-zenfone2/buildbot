@@ -76,7 +76,7 @@ rm -Rf $WORKSPACE/cache/*
 rm -Rf $WORKSPACE/kernel/*
 
 #to ensure the right arch is clean..
-#source build/envsetup.sh && time breakfast cm_$DEVICE-userdebug && make -j4 recoveryimage
+#source build/envsetup.sh && time breakfast cm_$DEVICE-userdebug
 
 make clean
 
@@ -97,7 +97,7 @@ cp -Rv ~/buildbot/patch/charger-ui-3.patch ~/RR/frameworks/base/
 
 cd $WORKSPACE/frameworks/base/
 
-git am fb.patch
+git am charger-ui-3.patch
 #patch -p1 < fb.patch 1>&2
 
 sleep 1
