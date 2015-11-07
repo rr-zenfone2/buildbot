@@ -1,0 +1,278 @@
+From 2e65f0fb80ef6ce9553f3696781caca42ca355ef Mon Sep 17 00:00:00 2001
+From: Christopher R. Palmer <crpalmer@gmail.com>
+Date: Sat, 12 Sep 2015 12:29:09 -0400
+Subject: [PATCH] battery: Add fast charging UI support [3/3]
+
+Change-Id: I810f93e81829f300c6a3124253678c92ac0746d9
+---
+
+diff --git a/core/java/android/os/BatteryManager.java b/core/java/android/os/BatteryManager.java
+index b571346..f278add 100644
+--- a/core/java/android/os/BatteryManager.java
++++ b/core/java/android/os/BatteryManager.java
+@@ -38,6 +38,13 @@
+     
+     /**
+      * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
++     * integer containing the current charge rate.
++     * @hide
++     */
++    public static final String EXTRA_CHARGE_RATE = "charge-rate";
++    
++    /**
++     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+      * integer containing the current health constant.
+      */
+     public static final String EXTRA_HEALTH = "health";
+@@ -182,6 +189,11 @@
+     public static final int BATTERY_STATUS_NOT_CHARGING = 4;
+     public static final int BATTERY_STATUS_FULL = 5;
+ 
++    /** values for "charge-rate" field in the ACTION_BATTERY_CHANGED intent
++     * @hide*/
++    public static final int BATTERY_CHARGE_RATE_UNKNOWN = 1;
++    public static final int BATTERY_CHARGE_RATE_FAST_CHARGING = 2;
++
+     // values for "health" field in the ACTION_BATTERY_CHANGED Intent
+     public static final int BATTERY_HEALTH_UNKNOWN = 1;
+     public static final int BATTERY_HEALTH_GOOD = 2;
+diff --git a/core/java/android/os/BatteryProperties.java b/core/java/android/os/BatteryPropert gies.java
+index 3167a7b..1ff10b6 100644
+--- a/core/java/android/os/BatteryProperties.java
++++ b/core/java/android/os/BatteryProperties.java
+@@ -24,6 +24,7 @@
+     public boolean chargerUsbOnline;
+     public boolean chargerWirelessOnline;
+     public int batteryStatus;
++    public int batteryChargeRate;
+     public int batteryHealth;
+     public boolean batteryPresent;
+     public int batteryLevel;
+@@ -49,6 +50,7 @@
+         chargerUsbOnline = other.chargerUsbOnline;
+         chargerWirelessOnline = other.chargerWirelessOnline;
+         batteryStatus = other.batteryStatus;
++        batteryChargeRate = other.batteryChargeRate;
+         batteryHealth = other.batteryHealth;
+         batteryPresent = other.batteryPresent;
+         batteryLevel = other.batteryLevel;
+@@ -77,6 +79,7 @@
+         chargerUsbOnline = p.readInt() == 1 ? true : false;
+         chargerWirelessOnline = p.readInt() == 1 ? true : false;
+         batteryStatus = p.readInt();
++        batteryChargeRate = p.readInt();
+         batteryHealth = p.readInt();
+         batteryPresent = p.readInt() == 1 ? true : false;
+         batteryLevel = p.readInt();
+@@ -111,6 +114,7 @@
+         p.writeInt(chargerUsbOnline ? 1 : 0);
+         p.writeInt(chargerWirelessOnline ? 1 : 0);
+         p.writeInt(batteryStatus);
++        p.writeInt(batteryChargeRate);
+         p.writeInt(batteryHealth);
+         p.writeInt(batteryPresent ? 1 : 0);
+         p.writeInt(batteryLevel);
+diff --git a/packages/SystemUI/src/com/android/systemui/BatteryMeterView.java b/packages/SystemUI/src/com/android/systemui/BatteryMeterView.java
+index 776e895..1a83a98 100755
+--- a/packages/SystemUI/src/com/android/systemui/BatteryMeterView.java
++++ b/packages/SystemUI/src/com/android/systemui/BatteryMeterView.java
+@@ -98,6 +98,7 @@
+         boolean plugged;
+         int health;
+         int status;
++        int chargeRate;
+         String technology;
+         int voltage;
+         int temperature;
+@@ -120,6 +121,8 @@
+                         BatteryManager.BATTERY_HEALTH_UNKNOWN);
+                 status = intent.getIntExtra(BatteryManager.EXTRA_STATUS,
+                         BatteryManager.BATTERY_STATUS_UNKNOWN);
++                chargeRate = intent.getIntExtra(BatteryManager.EXTRA_CHARGE_RATE,
++                        BatteryManager.BATTERY_CHARGE_RATE_UNKNOWN);
+                 technology = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY);
+                 voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0);
+                 temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
+@@ -453,6 +456,7 @@
+         private final RectF mFrame = new RectF();
+         private final RectF mButtonFrame = new RectF();
+         private final RectF mBoltFrame = new RectF();
++        private boolean mFastCharging;
+ 
+         public NormalBatteryMeterDrawable(Resources res, boolean horizontal) {
+             super();
+@@ -503,8 +507,10 @@
+             final int pb = getPaddingBottom() + (mHorizontal ? (int)(mHeight * 0.08f) : 0);
+             final int height = mHeight - pt - pb;
+             final int width = mWidth - pl - pr;
+-
+             final int buttonHeight = (int) ((mHorizontal ? width : height) * mButtonHeightFraction);
++            final boolean fastCharging;
++
++            fastCharging = tracker.chargeRate == BatteryManager.BATTERY_CHARGE_RATE_FAST_CHARGING;
+ 
+             mFrame.set(0, 0, width, height);
+             mFrame.offset(pl, pt);
+@@ -600,20 +606,33 @@
+                 final float br = mFrame.right - mFrame.width() / (mHorizontal ? 6f : 7f);
+                 final float bb = mFrame.bottom - mFrame.height() / (mHorizontal ? 7f : 10f);
+                 if (mBoltFrame.left != bl || mBoltFrame.top != bt
+-                        || mBoltFrame.right != br || mBoltFrame.bottom != bb) {
++                        || mBoltFrame.right != br || mBoltFrame.bottom != bb
++                        || mFastCharging != fastCharging) {
+                     mBoltFrame.set(bl, bt, br, bb);
++                    mFastCharging = fastCharging;
+                     mBoltPath.reset();
+-                    mBoltPath.moveTo(
+-                            mBoltFrame.left + mBoltPoints[0] * mBoltFrame.width(),
+-                            mBoltFrame.top + mBoltPoints[1] * mBoltFrame.height());
+-                    for (int i = 2; i < mBoltPoints.length; i += 2) {
++                    if (fastCharging) {
++                        final float size = Math.min(mFrame.width(), mFrame.height()) * .66f;
++                        final float thick = size * .33f;
++                        final float bx = (mFrame.width() - size) / 2;
++                        final float by = (mFrame.height() - size) / 3;
++                        final float x = bx + size/2 - thick/2;
++                        final float y = by*2 + size/2 - thick/2;
++                        mBoltPath.addRect(bx, y, bx + size, y + thick, Path.Direction.CW);
++                        mBoltPath.addRect(x, by*2, x + thick, by*2 + size, Path.Direction.CW);
++                    } else {
++                        mBoltPath.moveTo(
++                                mBoltFrame.left + mBoltPoints[0] * mBoltFrame.width(),
++                                mBoltFrame.top + mBoltPoints[1] * mBoltFrame.height());
++                        for (int i = 2; i < mBoltPoints.length; i += 2) {
++                            mBoltPath.lineTo(
++                                    mBoltFrame.left + mBoltPoints[i] * mBoltFrame.width(),
++                                    mBoltFrame.top + mBoltPoints[i + 1] * mBoltFrame.height());
++                        }
+                         mBoltPath.lineTo(
+-                                mBoltFrame.left + mBoltPoints[i] * mBoltFrame.width(),
+-                                mBoltFrame.top + mBoltPoints[i + 1] * mBoltFrame.height());
++                                mBoltFrame.left + mBoltPoints[0] * mBoltFrame.width(),
++                                mBoltFrame.top + mBoltPoints[1] * mBoltFrame.height());
+                     }
+-                    mBoltPath.lineTo(
+-                            mBoltFrame.left + mBoltPoints[0] * mBoltFrame.width(),
+-                            mBoltFrame.top + mBoltPoints[1] * mBoltFrame.height());
+                 }
+ 
+                 float boltPct = mHorizontal ?
+@@ -741,6 +760,7 @@
+         private float   mTextX, mTextY; // precalculated position for drawText() to appear centered
+ 
+         private Paint   mTextPaint;
++        private Paint   mFastChargingPaint;
+         private Paint   mFrontPaint;
+         private Paint   mBackPaint;
+         private Paint   mBoltPaint;
+@@ -760,6 +780,11 @@
+             Typeface font = Typeface.create("sans-serif-condensed", Typeface.BOLD);
+             mTextPaint.setTypeface(font);
+             mTextPaint.setTextAlign(Paint.Align.CENTER);
++
++            mFastChargingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
++            font = Typeface.create("sans-serif", Typeface.BOLD);
++            mFastChargingPaint.setTypeface(font);
++            mFastChargingPaint.setTextAlign(Paint.Align.CENTER);
+ 
+             mFrontPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+             mFrontPaint.setStrokeCap(Paint.Cap.BUTT);
+@@ -833,8 +858,11 @@
+         private void drawCircle(Canvas canvas, BatteryTracker tracker,
+                 float textX, RectF drawRect) {
+             boolean unknownStatus = tracker.status == BatteryManager.BATTERY_STATUS_UNKNOWN;
++            boolean fastCharging;
+             int level = tracker.level;
+             Paint paint;
++
++            fastCharging = tracker.chargeRate == BatteryManager.BATTERY_CHARGE_RATE_FAST_CHARGING;
+ 
+             if (unknownStatus) {
+                 paint = mBackPaint;
+@@ -858,7 +886,9 @@
+             if (unknownStatus) {
+                 mTextPaint.setColor(paint.getColor());
+                 canvas.drawText("?", textX, mTextY, mTextPaint);
+-
++            } else if (fastCharging) {
++                mFastChargingPaint.setColor(getColorForLevel(level));
++                canvas.drawText("+", textX, mTextY, mFastChargingPaint);
+             } else if (tracker.plugged) {
+                 canvas.drawPath(mBoltPath, mBoltPaint);
+             } else {
+@@ -912,6 +942,7 @@
+         private void initSizeBasedStuff() {
+             mCircleSize = Math.min(getMeasuredWidth(), getMeasuredHeight());
+             mTextPaint.setTextSize(mCircleSize / 2f);
++            mFastChargingPaint.setTextSize(mCircleSize / 1.5f);
+             mWarningTextPaint.setTextSize(mCircleSize / 2f);
+ 
+             float strokeWidth = mCircleSize / STROKE_WITH;
+diff --git a/services/core/java/com/android/server/BatteryService.java b/services/core/java/com/android/server/BatteryService.java
+index 059ae41..eff7af8 100644
+--- a/services/core/java/com/android/server/BatteryService.java
++++ b/services/core/java/com/android/server/BatteryService.java
+@@ -136,6 +136,7 @@
+     private final BatteryProperties mLastBatteryProps = new BatteryProperties();
+     private boolean mBatteryLevelCritical;
+     private int mLastBatteryStatus;
++    private int mLastBatteryChargeRate;
+     private int mLastBatteryHealth;
+     private boolean mLastBatteryPresent;
+     private int mLastBatteryLevel;
+@@ -386,6 +387,7 @@
+             msg +=  ", chargerUsbOnline=" + mBatteryProps.chargerUsbOnline
+                     + ", chargerWirelessOnline=" + mBatteryProps.chargerWirelessOnline
+                     + ", batteryStatus=" + mBatteryProps.batteryStatus
++                    + ", batteryChargeRate=" + mBatteryProps.batteryChargeRate
+                     + ", batteryHealth=" + mBatteryProps.batteryHealth
+                     + ", batteryPresent=" + mBatteryProps.batteryPresent
+                     + ", batteryLevel=" + mBatteryProps.batteryLevel
+@@ -433,6 +435,7 @@
+         shutdownIfOverTempLocked();
+ 
+         final boolean batteryChanged = mBatteryProps.batteryStatus != mLastBatteryStatus ||
++                mBatteryProps.batteryChargeRate != mLastBatteryChargeRate ||
+                 mBatteryProps.batteryHealth != mLastBatteryHealth ||
+                 mBatteryProps.batteryPresent != mLastBatteryPresent ||
+                 mBatteryProps.batteryLevel != mLastBatteryLevel ||
+@@ -471,6 +474,7 @@
+                 }
+             }
+             if (mBatteryProps.batteryStatus != mLastBatteryStatus ||
++                    mBatteryProps.batteryChargeRate != mLastBatteryChargeRate ||
+                     mBatteryProps.batteryHealth != mLastBatteryHealth ||
+                     mBatteryProps.batteryPresent != mLastBatteryPresent ||
+                     mPlugType != mLastPlugType) {
+@@ -608,6 +612,7 @@
+             }
+ 
+             mLastBatteryStatus = mBatteryProps.batteryStatus;
++            mLastBatteryChargeRate = mBatteryProps.batteryChargeRate;
+             mLastBatteryHealth = mBatteryProps.batteryHealth;
+             mLastBatteryPresent = mBatteryProps.batteryPresent;
+             mLastBatteryLevel = mBatteryProps.batteryLevel;
+@@ -636,6 +641,7 @@
+         int dockIcon = 0;
+ 
+         intent.putExtra(BatteryManager.EXTRA_STATUS, mBatteryProps.batteryStatus);
++        intent.putExtra(BatteryManager.EXTRA_CHARGE_RATE, mBatteryProps.batteryChargeRate);
+         intent.putExtra(BatteryManager.EXTRA_HEALTH, mBatteryProps.batteryHealth);
+         intent.putExtra(BatteryManager.EXTRA_PRESENT, mBatteryProps.batteryPresent);
+         intent.putExtra(BatteryManager.EXTRA_LEVEL, mBatteryProps.batteryLevel);
+@@ -672,6 +678,7 @@
+             String msg = "Sending ACTION_BATTERY_CHANGED. level:" + mBatteryProps.batteryLevel +
+                     ", scale:" + BATTERY_SCALE +
+                     ", status:" + mBatteryProps.batteryStatus +
++                    ", charge_rate:" + mBatteryProps.batteryChargeRate +
+                     ", health:" + mBatteryProps.batteryHealth +
+                     ", present:" + mBatteryProps.batteryPresent +
+                     ", voltage: " + mBatteryProps.batteryVoltage +
+@@ -823,6 +830,7 @@
+                 pw.println("  USB powered: " + mBatteryProps.chargerUsbOnline);
+                 pw.println("  Wireless powered: " + mBatteryProps.chargerWirelessOnline);
+                 pw.println("  status: " + mBatteryProps.batteryStatus);
++                pw.println("  charge type: " + mBatteryProps.batteryChargeRate);
+                 pw.println("  health: " + mBatteryProps.batteryHealth);
+                 pw.println("  present: " + mBatteryProps.batteryPresent);
+                 pw.println("  level: " + mBatteryProps.batteryLevel);
