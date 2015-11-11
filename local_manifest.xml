@@ -1,26 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <!-- REMOVE AOSP PROJECTS -->
-  <remove-project name="platform/hardware/intel/common/libstagefrighthw" path="hardware/intel/common/libstagefrighthw" />
-  <remove-project name="platform/hardware/intel/common/libva" path="hardware/intel/common/libva" />
-  <remove-project name="platform/hardware/intel/common/omx-components" path="hardware/intel/common/omx-components" />
-  <remove-project name="platform/hardware/intel/common/utils" path="hardware/intel/common/utils" />
-  <remove-project name="platform/hardware/intel/common/wrs_omxil_core" path="hardware/intel/common/wrs_omxil_core" />
-  <remove-project name="platform/hardware/intel/img/psb_video" path="hardware/intel/img/psb_video" />
-
-  <!-- ADD CM-ZENFONE2 PROJECTS -->
-  <project name="CM-zenfone2/android_hardware_intel_common_libstagefrighthw" path="hardware/intel/common/libstagefrighthw" remote="github" />
-  <project name="CM-zenfone2/android_hardware_intel_common_libva" path="hardware/intel/common/libva" remote="github" />
-  <project name="CM-zenfone2/android_hardware_intel_common_omx-components" path="hardware/intel/common/omx-components" remote="github" />
-  <project name="CM-zenfone2/android_hardware_intel_common_utils" path="hardware/intel/common/utils" remote="github" />
-  <project name="CM-zenfone2/android_hardware_intel_common_wrs_omxil_core" path="hardware/intel/common/wrs_omxil_core" remote="github" />
-  <project name="CM-zenfone2/android_hardware_intel_img_psb_video" path="hardware/intel/img/psb_video" remote="github" />
-
+ 
   <!-- CM-ZENFONE2 DEVICE PROJECTS -->
-  <project name="CM-zenfone2/android_device_asus_Z00A" path="device/asus/Z00A" remote="github" revision="cm-12.1" />
-  <project name="CM-zenfone2/android_device_asus_Z008" path="device/asus/Z008" remote="github" revision="cm-12.1" />
-  <project name="rr-zenfone2/android_device_asus_mofd-common" path="device/asus/mofd-common" remote="github" revision="master" />
-  <project name="rr-zenfone2/android_kernel_asus_moorefield" path="kernel/asus/moorefield" remote="github" revision="master" />
+  <project name="CM-zenfone2/android_device_asus_Z00A" path="device/asus/Z00A" remote="github" revision="cm-13.0" />
+  <project name="CM-zenfone2/android_device_asus_Z008" path="device/asus/Z008" remote="github" revision="cm-13.0" />
+  <project name="rr-zenfone2/android_device_asus_mofd-common" path="device/asus/mofd-common" remote="github" revision="rr-13.0" />
+  <project name="rr-zenfone2/android_kernel_asus_moorefield" path="kernel/asus/moorefield" remote="github" revision="rr-13.0" />
   <project name="rr-zenfone2/proprietary_vendor_asus-1" path="vendor/asus" remote="github" revision="cm-12.1" />
 
 </manifest>
