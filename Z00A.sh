@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Lets all build in the same time zone
-export TZ="usr/share/zoneinfo/UTC"
 export BUILD_WITH_COLORS=0
 export WORKSPACE=~/RR
 
