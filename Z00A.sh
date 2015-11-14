@@ -98,12 +98,35 @@ cd $WORKSPACE/frameworks/base/
 git am charger-ui-3.patch
 #patch -p1 < fb.patch 1>&2
 
+
 sleep 1
 cd $WORKSPACE
-cd hardware/intel/img/hwcomposer && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/86/117186/1 && git cherry-pick FETCH_HEAD && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/87/117187/1 && git cherry-pick FETCH_HEAD && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/89/117189/1 && git cherry-pick FETCH_HEAD && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/85/117185/1 && git cherry-pick FETCH_HEAD && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/84/117184/1 && git cherry-pick FETCH_HEAD && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/88/117188/1 && git cherry-pick FETCH_HEAD && cd ../.. && 
-cd common/libmix && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_common_libmix refs/changes/92/117192/1 && git cherry-pick FETCH_HEAD && cd ../../../.. && cd system/core && git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/32/114532/1 && git cherry-pick FETCH_HEAD
 
+cd hardware/intel/img/hwcomposer
+sleep 1
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/86/117186/1 && git cherry-pick FETCH_HEAD
+sleep 1
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/87/117187/1 && git cherry-pick FETCH_HEAD
+sleep 1
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/89/117189/1 && git cherry-pick FETCH_HEAD
+sleep 1
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/85/117185/1 && git cherry-pick FETCH_HEAD
+sleep 1
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/84/117184/1 && git cherry-pick FETCH_HEAD
+sleep 1
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/88/117188/1 && git cherry-pick FETCH_HEAD
+
+sleep 2
 cd $WORKSPACE
+cd common/libmix && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_common_libmix refs/changes/92/117192/1 && git cherry-pick FETCH_HEAD
+
+ sleep 2
+ cd $WORKSPACE
+
+cd system/core && git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/32/114532/1 && git cherry-pick FETCH_HEAD
+
+ sleep 2
+ cd $WORKSPACE
 
 source build/envsetup.sh && time brunch cm_$DEVICE-userdebug -j4
 
