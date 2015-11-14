@@ -3,7 +3,7 @@
   <!-- CM-ZENFONE2 DEVICE PROJECTS -->
   <project name="CyanogenMod/android_device_asus_Z00A" path="device/asus/Z00A" remote="github" revision="cm-13.0" />
   <project name="CyanogenMod/android_device_asus_Z008" path="device/asus/Z008" remote="github" revision="cm-13.0" />
-  <project name="CyanogenMod/android_device_asus_mofd-common" path="device/asus/mofd-common" remote="github" revision="rr-13.0" />
+  <project name="rr-zenfone2/android_device_asus_mofd-common" path="device/asus/mofd-common" remote="github" revision="rr-13.0" />
   <project name="CyanogenMod/android_kernel_asus_moorefield" path="kernel/asus/moorefield" remote="github" revision="rr-13.0" />
   <project name="TheMuppets/proprietary_vendor_asus" path="vendor/asus" remote="github" revision="cm-13.0" />
 </manifest>
