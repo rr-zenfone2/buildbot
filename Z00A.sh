@@ -89,14 +89,7 @@ rm -Rf $WORKSPACE/out/*
 
 #cp -Rv ~/backup/* ~/RR/device/asus
 
-rm -Rv $WORKSPACE/frameworks/testing/*
 
-cp -Rv ~/buildbot/patch/charger-ui-3.patch ~/RR/frameworks/base/
-
-cd $WORKSPACE/frameworks/base/
-
-git am charger-ui-3.patch
-#patch -p1 < fb.patch 1>&2
 
 
 sleep 1
