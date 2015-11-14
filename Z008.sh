@@ -100,32 +100,43 @@ cd $WORKSPACE/frameworks/base/
 
 sleep 1
 cd $WORKSPACE
-
 cd hardware/intel/img/hwcomposer
 sleep 1
+# Update HWC interface
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/86/117186/1 && git cherry-pick FETCH_HEAD
+
 sleep 1
+# hwc: Enabling ION
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/87/117187/1 && git cherry-pick FETCH_HEAD
+
 sleep 1
+# hwc: merrifield_plus: Add legacy LP blob support
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/89/117189/1 && git cherry-pick FETCH_HEAD
+
 sleep 1
+# Fix compiliation without WIDI support
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/85/117185/1 && git cherry-pick FETCH_HEAD
+
 sleep 1
+# Update #define syntax for string concatenation
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/84/117184/1 && git cherry-pick FETCH_HEAD
+
 sleep 1
+# hwc: Use the proper define for the primary display
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/88/117188/1 && git cherry-pick FETCH_HEAD
 
 sleep 2
 cd $WORKSPACE
+# intel: videdecoder: Allow INTEL_VIDEO_XPROC_SHARING to be defined
 cd common/libmix && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_common_libmix refs/changes/92/117192/1 && git cherry-pick FETCH_HEAD
 
- sleep 2
- cd $WORKSPACE
-
+sleep 2
+cd $WORKSPACE
+# Turn a shutdown request into reboot when charger is connected.
 cd system/core && git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/32/114532/1 && git cherry-pick FETCH_HEAD
 
- sleep 2
- cd $WORKSPACE
+sleep 2
+cd $WORKSPACE
 
 source build/envsetup.sh && time brunch cm_$DEVICE-userdebug -j3
 
