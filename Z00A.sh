@@ -9,7 +9,7 @@ git config --global user.name knone1
 git config --global user.email knone.null@gmail.com
 git config --global core.excludesfile ~/.gitignore
 
-DEVICE=Z008
+DEVICE=Z00A
 
 if [ -z "$HOME" ]
 then
