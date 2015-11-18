@@ -36,7 +36,7 @@ index b571346..f278add 100644
      // values for "health" field in the ACTION_BATTERY_CHANGED Intent
      public static final int BATTERY_HEALTH_UNKNOWN = 1;
      public static final int BATTERY_HEALTH_GOOD = 2;
-diff --git a/core/java/android/os/BatteryProperties.java b/core/java/android/os/BatteryPropert gies.java
+diff --git a/core/java/android/os/BatteryProperties.java b/core/java/android/os/BatteryProperties.java
 index 3167a7b..1ff10b6 100644
 --- a/core/java/android/os/BatteryProperties.java
 +++ b/core/java/android/os/BatteryProperties.java
