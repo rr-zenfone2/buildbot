@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Lets all build in the same time zone
-export TZ="usr/share/zoneinfo/UTC"
+
 export BUILD_WITH_COLORS=0
 export WORKSPACE=~/RR
 
@@ -76,7 +76,7 @@ rm -Rf $WORKSPACE/cache/*
 rm -Rf $WORKSPACE/kernel/*
 
 #to ensure the right arch is clean..
-#source build/envsetup.sh && time breakfast cm_$DEVICE-userdebug
+#source build/envsetup.sh && time breakfast cm_$DEVICE-userdebug && make -j4 recoveryimage
 
 make clean
 
@@ -86,59 +86,105 @@ make clobber
 sleep 3
 rm -Rf $WORKSPACE/out/*
 
+if [ -f ~/.profile ]
+then
+. ~/.profile
+fi
  repo sync --force-sync -d -f -c
   check_result "repo sync failed."
 
-#cp -Rv ~/backup/* ~/RR/device/asus
 
-rm -Rv $WORKSPACE/frameworks/testing/*
+# Charging UI patch
 
-cp -Rv ~/buildbot/patch/charger-ui-3.patch ~/RR/frameworks/base/
+# battery: Add fast charging UI support [3/3]
 
 cd $WORKSPACE/frameworks/base/
-
 git am charger-ui-3.patch
-#patch -p1 < fb.patch 1>&2
 
 sleep 1
 cd $WORKSPACE
-git fetch http://review.cyanogenmod.org/CyanogenMod/android_device_asus_mofd-common refs/changes/37/117837/1 && git cherry-pick FETCH_HEAD
+cd system/core
+# healthd: Add fast charging UI support [2/3]
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/65/109365/6 && git cherry-pick FETCH_HEAD
 
 sleep 1
 cd $WORKSPACE
-cd hardware/intel/img/hwcomposer && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/82/117182/1 && git cherry-pick FETCH_HEAD
+cd frameworks/native
+# native: Add fast charging UI support [1/3]
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_frameworks_native refs/changes/64/109364/3 && git cherry-pick FETCH_HEAD
 
+
+# Zenfone2 bringuop cm-12.1 patch
+
+sleep 2
+cd $WORKSPACE
+cd hardware/intel/common/libmix
+# intel: videdecoder: Allow INTEL_VIDEO_XPROC_SHARING to be defined
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_common_libmix refs/changes/91/117191/1 && git cherry-pick FETCH_HEAD
+
+sleep 1
+cd $WORKSPACE
+cd hardware/intel/img/libdrm
+# libdrm: Add drmModeAddFB2 needed by Z00A's hwcomposer blob
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_libdrm refs/changes/01/117201/1 && git cherry-pick FETCH_HEAD
+
+sleep 1
+cd $WORKSPACE
+cd hardware/intel/img/hwcomposer
+# intel: hwcomposer: Allow devices to restrict rgb layers
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/83/117183/1 && git cherry-pick FETCH_HEAD
 
 sleep 1
 cd $WORKSPACE
-git fetch http://review.cyanogenmod.org/CyanogenMod/android_device_asus_mofd-common refs/changes/37/117837/1 && git cherry-pick FETCH_HEAD
+# intel: hwcompower: Properly conditionalize the HDMI_PRIMARY changes
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/82/117182/1 && git cherry-pick FETCH_HEAD
+
+
+sleep 2
+cd $WORKSPACE
+cd system/core
+# Turn a shutdown request into reboot when charger is connected.
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/86/110686/1 && git cherry-pick FETCH_HEAD
+
+sleep 1
+# adbd: Add intel style super-speed support
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/70/101970/2 && git cherry-pick FETCH_HEAD
+
+sleep 1
+# init: Allow devices to use user-space tools to set ro.serialno
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/28/103928/1 && git cherry-pick FETCH_HEAD
+
+
+sleep 2
+cd $WORKSPACE
+cd frameworks/native
+# Create additional ident for virtual sensors
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_frameworks_native refs/changes/36/108636/2 && git cherry-pick FETCH_HEAD
 
 sleep 1
 cd $WORKSPACE
-cd hardware/intel/img/libdrm && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_libdrm refs/changes/01/117201/1 && git cherry-pick FETCH_HEAD
-
-
-sleep 1
-cd $WORKSPACE
-cd hardware/intel/common/libmix && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_common_libmix refs/changes/91/117191/1 && git cherry-pick FETCH_HEAD
+cd hardware/ril
+# ril: Support non-QCOM_HARDWARE multi-sim devices
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_ril refs/changes/25/102725/2 && git cherry-pick FETCH_HEAD
 
 sleep 1
 cd $WORKSPACE
+cd bootable/recovery
+# Sideload: usb 3.0 superspeed support
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_bootable_recovery refs/changes/26/102426/1 && git cherry-pick FETCH_HEAD
 
-cd frameworks/native && git fetch http://review.cyanogenmod.org/CyanogenMod/android_frameworks_native refs/changes/64/109364/3 && git cherry-pick FETCH_HEAD
+sleep 1
+cd $WORKSPACE
+cd external/tinyalsa
+# tinyalsa: Use kernel headers when available
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_external_tinyalsa refs/changes/43/103343/1 && git cherry-pick FETCH_HEAD
 
-
+# end patch
+sleep 3
 cd $WORKSPACE
 
-cd system/core && git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/65/109365/6 && git cherry-pick FETCH_HEAD
 
-cd $WORKSPACE
-cd external/tinyalsa && git fetch http://review.cyanogenmod.org/CyanogenMod/android_external_tinyalsa refs/changes/43/103343/1 && git cherry-pick FETCH_HEAD && cd ../.. && cd bootable/recovery && git fetch http://review.cyanogenmod.org/CyanogenMod/android_bootable_recovery refs/changes/26/102426/1 && git cherry-pick FETCH_HEAD && cd ../.. && cd system/core && git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/28/103928/1 && git cherry-pick FETCH_HEAD && cd ../.. && cd hardware/ril && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_ril refs/changes/25/102725/2 && git cherry-pick FETCH_HEAD && cd ../.. && cd system/core && git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/70/101970/2 && git cherry-pick FETCH_HEAD && git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/86/110686/1 && git cherry-pick FETCH_HEAD
-
-cd $WORKSPACE
-
-source build/envsetup.sh && time brunch cm_$DEVICE-userdebug -j3
+source build/envsetup.sh && time brunch cm_$DEVICE-userdebug -j4
 
 
 
@@ -160,4 +206,3 @@ source build/envsetup.sh && time brunch cm_$DEVICE-userdebug -j3
 #i
 
 $CCACHE_BIN -s
-
