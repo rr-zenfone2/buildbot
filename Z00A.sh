@@ -9,7 +9,7 @@ git config --global user.name knone1
 git config --global user.email knone.null@gmail.com
 git config --global core.excludesfile ~/.gitignore
 
-DEVICE=Z00A
+DEVICE=Z008
 
 if [ -z "$HOME" ]
 then
@@ -94,10 +94,12 @@ fi
   check_result "repo sync failed."
 
 
+rm -Rv $WORKSPACE/frameworks/testing/*
+
 # Charging UI patch
 
+cp -Rv ~/buildbot/patch/charger-ui-3.patch ~/RR/frameworks/base/
 # battery: Add fast charging UI support [3/3]
-
 cd $WORKSPACE/frameworks/base/
 git am charger-ui-3.patch
 
@@ -135,10 +137,8 @@ cd hardware/intel/img/hwcomposer
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/83/117183/1 && git cherry-pick FETCH_HEAD
 
 sleep 1
-cd $WORKSPACE
 # intel: hwcompower: Properly conditionalize the HDMI_PRIMARY changes
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_hwcomposer refs/changes/82/117182/1 && git cherry-pick FETCH_HEAD
-
 
 sleep 2
 cd $WORKSPACE
@@ -153,7 +153,6 @@ git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/cha
 sleep 1
 # init: Allow devices to use user-space tools to set ro.serialno
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/28/103928/1 && git cherry-pick FETCH_HEAD
-
 
 sleep 2
 cd $WORKSPACE
