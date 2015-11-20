@@ -89,9 +89,6 @@ rm -Rf $WORKSPACE/out/*
 
 #cp -Rv ~/backup/* ~/RR/device/asus
 
-
-
-
 sleep 1
 cd $WORKSPACE
 cd hardware/intel/img/hwcomposer
@@ -122,18 +119,29 @@ git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_h
 sleep 2
 cd $WORKSPACE
 # intel: videdecoder: Allow INTEL_VIDEO_XPROC_SHARING to be defined
-cd common/libmix && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_common_libmix refs/changes/92/117192/1 && git cherry-pick FETCH_HEAD
+cd hardware/intel/common/libmix
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_common_libmix refs/changes/92/117192/1 && git cherry-pick FETCH_HEAD
 
 sleep 2
 cd $WORKSPACE
+cd system/core
 # Turn a shutdown request into reboot when charger is connected.
-cd system/core && git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/32/114532/1 && git cherry-pick FETCH_HEAD
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/32/114532/1 && git cherry-pick FETCH_HEAD
+
+sleep 1
+# init: Allow devices to use user-space tools to set ro.serialno
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/31/114531/3 && git cherry-pick FETCH_HEAD
+
+sleep 2
+cd $WORKSPACE
+cd external/tinyalsa
+# tinyalsa: Use kernel headers when available
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_external_tinyalsa refs/changes/30/114530/2 && git cherry-pick FETCH_HEAD
 
 sleep 2
 cd $WORKSPACE
 
 source build/envsetup.sh && time brunch cm_$DEVICE-userdebug -j4
-
 
 
 $CCACHE_BIN -s
