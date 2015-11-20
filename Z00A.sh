@@ -2,6 +2,9 @@
 
 export BUILD_WITH_COLORS=0
 export WORKSPACE=~/RR
+export PATH=~/bin:$PATH
+export USE_CCACHE=1
+prebuilts/misc/linux-x86/ccache/ccache -M 30G
 
 git config --global user.name knone1
 git config --global user.email knone.null@gmail.com
@@ -9,85 +12,9 @@ git config --global core.excludesfile ~/.gitignore
 
 DEVICE=Z00A
 
-if [ -z "$HOME" ]
-then
-  echo HOME not in environment, guessing...
-  export HOME=$(awk -F: -v v="$USER" '{if ($1==v) print $6}' /etc/passwd)
-fi
-
-function check_result {
-  if [ "0" -ne "$?" ]
-  then
-    (repo forall -c "git reset --hard") >/dev/null
-    echo $1
-    exit 1
-  fi
-}
-
 WORKSPACE=~/RR
 
 cd $WORKSPACE
-
-# Jenkins logs in with "bash -c ..." which does not read any profile or rc
-# files (that is, it's not a login or interactive shell).  Source the system
-# profile here to pull in system settings such as ccache variables, etc.
-if [ -d /etc/profile.d ]; then
-  for i in /etc/profile.d/*.sh; do
-    if [ -r $i ]; then
-      . $i
-    fi
-  done
-  unset i
-fi
-
-REPO=$(which repo)
-if [ -z "$REPO" ]
-then
-  mkdir -p ~/bin
-  curl http://commondatastorage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-  chmod a+x ~/bin/repo
-fi
-
-export PATH=~/bin:$PATH
-export USE_CCACHE=1
-
-CCACHE_BIN=$(which ccache)
-if [ -z "$CCACHE_BIN" ]
-then
-  CCACHE_BIN="prebuilts/misc/linux-x86/ccache/ccache"
-fi
-
-if [ -z "$CCACHE_DIR" ]
-then
-  #export CCACHE_DIR="$HOME/.ccache-$device"
-  export CCACHE_DIR=$WORKSPACE/.ccache
-  if [ ! -d "$CCACHE_DIR" -a -x "$CCACHE_BIN" ]
-  then
-    mkdir -p "$CCACHE_DIR"
-    #$CCACHE_BIN -M 20G
-    $CCACHE_BIN -M 30G
-  fi
-fi
-
-rm -Rf $WORKSPACE/cache/*
-
-rm -Rf $WORKSPACE/kernel/*
-
-#to ensure the right arch is clean..
-#source build/envsetup.sh && time breakfast cm_$DEVICE-userdebug
-
-make clean
-
-sleep 2
-make clobber
-
-sleep 3
-rm -Rf $WORKSPACE/out/*
-
- repo sync --force-sync -d -f -c
-  check_result "repo sync failed."
-
-#cp -Rv ~/backup/* ~/RR/device/asus
 
 sleep 1
 cd $WORKSPACE
@@ -128,10 +55,6 @@ cd system/core
 # Turn a shutdown request into reboot when charger is connected.
 git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/32/114532/1 && git cherry-pick FETCH_HEAD
 
-sleep 1
-# init: Allow devices to use user-space tools to set ro.serialno
-git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/31/114531/3 && git cherry-pick FETCH_HEAD
-
 sleep 2
 cd $WORKSPACE
 cd external/tinyalsa
@@ -142,7 +65,3 @@ sleep 2
 cd $WORKSPACE
 
 source build/envsetup.sh && time brunch cm_$DEVICE-userdebug -j4
-
-
-$CCACHE_BIN -s
-
