@@ -89,15 +89,6 @@ rm -Rf $WORKSPACE/out/*
 
 #cp -Rv ~/backup/* ~/RR/device/asus
 
-rm -Rv $WORKSPACE/frameworks/testing/*
-
-cp -Rv ~/buildbot/patch/charger-ui-3.patch ~/RR/frameworks/base/
-
-cd $WORKSPACE/frameworks/base/
-
-#git am charger-ui-3.patch
-#patch -p1 < fb.patch 1>&2
-
 sleep 1
 cd $WORKSPACE
 cd hardware/intel/img/hwcomposer
@@ -128,36 +119,29 @@ git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_img_h
 sleep 2
 cd $WORKSPACE
 # intel: videdecoder: Allow INTEL_VIDEO_XPROC_SHARING to be defined
-cd common/libmix && git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_common_libmix refs/changes/92/117192/1 && git cherry-pick FETCH_HEAD
+cd hardware/intel/common/libmix
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_hardware_intel_common_libmix refs/changes/92/117192/1 && git cherry-pick FETCH_HEAD
 
 sleep 2
 cd $WORKSPACE
+cd system/core
 # Turn a shutdown request into reboot when charger is connected.
-cd system/core && git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/32/114532/1 && git cherry-pick FETCH_HEAD
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/32/114532/1 && git cherry-pick FETCH_HEAD
+
+sleep 1
+# init: Allow devices to use user-space tools to set ro.serialno
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_system_core refs/changes/31/114531/3 && git cherry-pick FETCH_HEAD
+
+sleep 2
+cd $WORKSPACE
+cd external/tinyalsa
+# tinyalsa: Use kernel headers when available
+git fetch http://review.cyanogenmod.org/CyanogenMod/android_external_tinyalsa refs/changes/30/114530/2 && git cherry-pick FETCH_HEAD
 
 sleep 2
 cd $WORKSPACE
 
-source build/envsetup.sh && time brunch cm_$DEVICE-userdebug -j3
+source build/envsetup.sh && time brunch cm_$DEVICE-userdebug -j4
 
-
-
-#LAST_CLEAN=0
-#if [ -f .clean ]
-#then
-#  LAST_CLEAN=$(date -r .clean +%s)
-#fi
-#TIME_SINCE_LAST_CLEAN=$(expr $(date +%s) - $LAST_CLEAN)
-# convert this to hours
-#TIME_SINCE_LAST_CLEAN=$(expr $TIME_SINCE_LAST_CLEAN / 60 / 60)
-#if [ $TIME_SINCE_LAST_CLEAN -gt "72" ]
-#then
-#  echo "Cleaning!"
-#  touch .clean
-#  make clobber
-#else
-#echo "Skipping clean: $TIME_SINCE_LAST_CLEAN hours since last clean."
-#i
 
 $CCACHE_BIN -s
-
